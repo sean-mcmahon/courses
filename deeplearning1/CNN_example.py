@@ -138,9 +138,11 @@ def printDataInfo(x_train, y_train, x_test, y_test, plotting=True):
     print '=' * 40
 
 
-def main(x_train, y_train, x_test, y_test, train_params):
+def create_and_train(x_train, y_train, x_test, y_test, train_params):
     model_path = os.path.join(
         train_params['save_dir'], train_params['model_name'])
+    assert not os.path.isfile(
+        model_path), 'Model "{}" already exists'.format(model_path)
 
     if train_params['batch_norm']:
         model = createNetworkBN(
@@ -158,7 +160,7 @@ def main(x_train, y_train, x_test, y_test, train_params):
                   metrics=['accuracy'])
 
     # Augment Data and Train!
-    if not data_augmentation:
+    if not train_params['data_augmentation']:
         print('Not using data augmentation.')
         model.fit(x_train, y_train,
                   batch_size=train_params['batch_size'],
@@ -203,19 +205,8 @@ def main(x_train, y_train, x_test, y_test, train_params):
     print 'Test loss {}'.format(scores[0])
     print 'Test accuracy {}'.format(scores[1])
 
-if __name__ == '__main__':
-    train_params = {'data_augmentation': True,
-                    'batch_norm': True,
-                    'batch_size': 256,
-                    'num_classes': 10,
-                    'epochs': 5,
-                    'model_name': 'keras_cifar10_aug_BN.h5'}
-    data_augmentation = True
-    batch_norm = False
-    batch_size = 256
-    num_classes = 10
-    epochs = 5
 
+def main(train_params, verbose=False):
     save_dir = os.path.join(os.getcwd(), 'brisbaneai', 'cifar_models',
                             'cifar_train')
     if not os.path.isdir(save_dir):
@@ -224,13 +215,15 @@ if __name__ == '__main__':
 
     (x_train, y_train), (x_test, y_test) = cifar10.load_data()
 
-    printDataInfo(x_train, y_train, x_test, y_test, plotting=False)
+    if verbose:
+        printDataInfo(x_train, y_train, x_test, y_test, plotting=False)
 
     # create one hot vectors
-    y_train = ks.utils.to_categorical(y_train, num_classes)
-    y_test = ks.utils.to_categorical(y_test, num_classes)
-    print 'training labels (one-hot encoded): {}'.format(y_train.shape)
-    print 'testing labels (one-hot encoded):  {}'.format(y_test.shape)
+    y_train = ks.utils.to_categorical(y_train, train_params['num_classes'])
+    y_test = ks.utils.to_categorical(y_test, train_params['num_classes'])
+    if verbose:
+        print 'training labels (one-hot encoded): {}'.format(y_train.shape)
+        print 'testing labels (one-hot encoded):  {}'.format(y_test.shape)
 
     # convert to float32's and normalise images
     x_train.astype(np.float32)
@@ -238,7 +231,44 @@ if __name__ == '__main__':
     x_train /= 255
     x_test /= 255
 
-    for key, value in train_params.iteritems():
-        print 'Set "{}" to {}'.format(key, value)
+    create_and_train(x_train, y_train, x_test, y_test, train_params)
 
-    main(x_train, y_train, x_test, y_test, train_params)
+if __name__ == '__main__':
+    '''
+    To Show
+    Data preprocessing (done)
+    Data Augmentation (done)
+    Batch Norm (Done)
+    Dropout (included but not done)
+    Finetuning (show jeremy's notebook)
+    '''
+    no_aug = {'data_augmentation': False,
+              'batch_norm': False,
+              'batch_size': 256,
+              'num_classes': 10,
+              'epochs': 10,
+              'model_name': 'keras_cifar10_no_aug.h5'}
+
+    t_aug = {'data_augmentation': True,
+             'batch_norm': False,
+             'batch_size': no_aug['batch_size'],
+             'num_classes': no_aug['num_classes'],
+             'epochs': no_aug['epochs'],
+             'model_name': 'keras_cifar10_aug.h5'}
+
+    t_bn = {'data_augmentation': True,
+            'batch_norm': True,
+            'batch_size': no_aug['batch_size'],
+            'num_classes': no_aug['num_classes'],
+            'epochs': no_aug['epochs'],
+            'model_name': 'keras_cifar10_aug_BN.h5'}
+
+    params = [no_aug, t_aug, t_bn]
+
+    for p in params:
+        print '=*=' * 40
+        print 'Running params {}/{}'
+        for key, value in p.iteritems():
+            print 'Set "{}" to {}'.format(key, value)
+        main(p)
+        print '\n' * 5
