@@ -22,6 +22,10 @@ from keras.preprocessing.image import ImageDataGenerator
 
 
 def createNetwork_noDropout(input_shape, num_classes, print_summary=True):
+    '''
+    You almost never have to create your own network, its almost always a
+    pre-trained model on ImageNet such as VGG, ResNet or GoogleNet.
+    '''
     model = keras.models.Sequential()
     model.add(keras.layers.Conv2D(32, (3, 3), padding='same',
                                   input_shape=input_shape))
@@ -52,6 +56,9 @@ def createNetwork_noDropout(input_shape, num_classes, print_summary=True):
 
 def createNetwork(input_shape, num_classes, print_summary=True):
     '''
+    You almost never have to create your own network, its almost always a
+    pre-trained model on ImageNet such as VGG, ResNet or GoogleNet.
+
     The base network given in the Cifar10 example by Keras.
     '''
     model = keras.models.Sequential()
@@ -87,6 +94,9 @@ def createNetwork(input_shape, num_classes, print_summary=True):
 
 def createNetworkBN(input_shape, num_classes, print_summary=True):
     '''
+    You almost never have to create your own network, its almost always a
+    pre-trained model on ImageNet such as VGG, ResNet or GoogleNet.
+
     Put BN before or after activation?
     https://github.com/ducha-aiki/caffenet-benchmark/blob/master/batchnorm.md#bn----before-or-after-relu
     Appears afterwards is better, despite the authors suggesting before:
@@ -179,7 +189,7 @@ def printDataInfo(x_train, y_train, x_test, y_test, plotting=True):
 def create_model(train_params, input_shape, print_summary=True):
     '''
     A couple of different networks for experimenting with.
-    This would typicall be VGG for most applications, but as this is just a toy
+    This would typical be VGG/ResNet/GoogleNet for most applications, but as this is just a toy
     example, we're using a custom network trained from scratch.
     '''
     if train_params['batch_norm']:
