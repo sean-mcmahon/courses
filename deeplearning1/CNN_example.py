@@ -1,44 +1,81 @@
 '''
-A brief introduction into finetuning deep CNNs using MNIST or Cifar??.
-Will conver data preprocessing, data augmentation, finetuning and regularization
+A brief introduction into finetuning deep CNNs using Cifa10
+Will conver data preprocessing, data augmentation, finetunig and regularization.
+
+Based on the Keras Cifar10 CNN example code at:
+https://github.com/fchollet/keras/blob/master/examples/cifar10_cnn.py
+
+----------------------------------------------------------
+Look at the function "main" first, line 288 or something.
+"def main(train_params, verbose=False, train=True):"
+----------------------------------------------------------
+
+Created by Sean McMahon on the 10th Nov 2017.
 '''
 
 from keras.datasets import cifar10
-import keras as ks
+import keras
 import numpy as np
 import os
 import matplotlib.pyplot as plt
 from keras.preprocessing.image import ImageDataGenerator
 
 
-cifar10_lookup = {1: 'airplane', 2: 'automobile', 3: 'bird', 4: 'cat',
-                  5: 'deer', 6: 'dog', 7: 'frog', 8: 'horse', 9: 'ship',
-                  10: 'truck'}
+def createNetwork_noDropout(input_shape, num_classes, print_summary=True):
+    model = keras.models.Sequential()
+    model.add(keras.layers.Conv2D(32, (3, 3), padding='same',
+                                  input_shape=input_shape))
+    model.add(keras.layers.Activation('relu'))
+    model.add(keras.layers.Conv2D(32, (3, 3)))
+    model.add(keras.layers.Activation('relu'))
+    model.add(keras.layers.MaxPooling2D(pool_size=(2, 2)))
+
+    model.add(keras.layers.Conv2D(64, (3, 3), padding='same'))
+    model.add(keras.layers.Activation('relu'))
+    model.add(keras.layers.Conv2D(64, (3, 3)))
+    model.add(keras.layers.Activation('relu'))
+    model.add(keras.layers.MaxPooling2D(pool_size=(2, 2)))
+
+    model.add(keras.layers.Flatten())
+    model.add(keras.layers.Dense(512))
+    model.add(keras.layers.Activation('relu'))
+    model.add(keras.layers.Dense(num_classes))
+    model.add(keras.layers.Activation('softmax'))
+
+    if print_summary:
+        print '\nCreated network: '
+        print model.summary()
+        print '\n'
+
+    return model
 
 
 def createNetwork(input_shape, num_classes, print_summary=True):
-    model = ks.models.Sequential()
-    model.add(ks.layers.Conv2D(32, (3, 3), padding='same',
-                               input_shape=input_shape))
-    model.add(ks.layers.Activation('relu'))
-    model.add(ks.layers.Conv2D(32, (3, 3)))
-    model.add(ks.layers.Activation('relu'))
-    model.add(ks.layers.MaxPooling2D(pool_size=(2, 2)))
-    model.add(ks.layers.Dropout(0.25))
+    '''
+    The base network given in the Cifar10 example by Keras.
+    '''
+    model = keras.models.Sequential()
+    model.add(keras.layers.Conv2D(32, (3, 3), padding='same',
+                                  input_shape=input_shape))
+    model.add(keras.layers.Activation('relu'))
+    model.add(keras.layers.Conv2D(32, (3, 3)))
+    model.add(keras.layers.Activation('relu'))
+    model.add(keras.layers.MaxPooling2D(pool_size=(2, 2)))
+    model.add(keras.layers.Dropout(0.25))
 
-    model.add(ks.layers.Conv2D(64, (3, 3), padding='same'))
-    model.add(ks.layers.Activation('relu'))
-    model.add(ks.layers.Conv2D(64, (3, 3)))
-    model.add(ks.layers.Activation('relu'))
-    model.add(ks.layers.MaxPooling2D(pool_size=(2, 2)))
-    model.add(ks.layers.Dropout(0.25))
+    model.add(keras.layers.Conv2D(64, (3, 3), padding='same'))
+    model.add(keras.layers.Activation('relu'))
+    model.add(keras.layers.Conv2D(64, (3, 3)))
+    model.add(keras.layers.Activation('relu'))
+    model.add(keras.layers.MaxPooling2D(pool_size=(2, 2)))
+    model.add(keras.layers.Dropout(0.25))
 
-    model.add(ks.layers.Flatten())
-    model.add(ks.layers.Dense(512))
-    model.add(ks.layers.Activation('relu'))
-    model.add(ks.layers.Dropout(0.5))
-    model.add(ks.layers.Dense(num_classes))
-    model.add(ks.layers.Activation('softmax'))
+    model.add(keras.layers.Flatten())
+    model.add(keras.layers.Dense(512))
+    model.add(keras.layers.Activation('relu'))
+    model.add(keras.layers.Dropout(0.5))
+    model.add(keras.layers.Dense(num_classes))
+    model.add(keras.layers.Activation('softmax'))
 
     if print_summary:
         print '\nCreated network: '
@@ -55,33 +92,33 @@ def createNetworkBN(input_shape, num_classes, print_summary=True):
     Appears afterwards is better, despite the authors suggesting before:
     https://github.com/fchollet/keras/issues/1802#issuecomment-187966878
     '''
-    model = ks.models.Sequential()
-    model.add(ks.layers.Conv2D(32, (3, 3), padding='same',
-                               input_shape=input_shape))
-    model.add(ks.layers.normalization.BatchNormalization(axis=1))
-    model.add(ks.layers.Activation('relu'))
-    model.add(ks.layers.Conv2D(32, (3, 3)))
-    model.add(ks.layers.normalization.BatchNormalization(axis=1))
-    model.add(ks.layers.Activation('relu'))
-    model.add(ks.layers.MaxPooling2D(pool_size=(2, 2)))
-    model.add(ks.layers.Dropout(0.25))
+    model = keras.models.Sequential()
+    model.add(keras.layers.Conv2D(32, (3, 3), padding='same',
+                                  input_shape=input_shape))
+    model.add(keras.layers.normalization.BatchNormalization(axis=1))
+    model.add(keras.layers.Activation('relu'))
+    model.add(keras.layers.Conv2D(32, (3, 3)))
+    model.add(keras.layers.normalization.BatchNormalization(axis=1))
+    model.add(keras.layers.Activation('relu'))
+    model.add(keras.layers.MaxPooling2D(pool_size=(2, 2)))
+    model.add(keras.layers.Dropout(0.25))
 
-    model.add(ks.layers.Conv2D(64, (3, 3), padding='same'))
-    model.add(ks.layers.normalization.BatchNormalization(axis=1))
-    model.add(ks.layers.Activation('relu'))
-    model.add(ks.layers.Conv2D(64, (3, 3)))
-    model.add(ks.layers.normalization.BatchNormalization(axis=1))
-    model.add(ks.layers.Activation('relu'))
-    model.add(ks.layers.MaxPooling2D(pool_size=(2, 2)))
-    model.add(ks.layers.Dropout(0.25))
+    model.add(keras.layers.Conv2D(64, (3, 3), padding='same'))
+    model.add(keras.layers.normalization.BatchNormalization(axis=1))
+    model.add(keras.layers.Activation('relu'))
+    model.add(keras.layers.Conv2D(64, (3, 3)))
+    model.add(keras.layers.normalization.BatchNormalization(axis=1))
+    model.add(keras.layers.Activation('relu'))
+    model.add(keras.layers.MaxPooling2D(pool_size=(2, 2)))
+    model.add(keras.layers.Dropout(0.25))
 
-    model.add(ks.layers.Flatten())
-    model.add(ks.layers.Dense(512))
-    model.add(ks.layers.normalization.BatchNormalization())
-    model.add(ks.layers.Activation('relu'))
-    model.add(ks.layers.Dropout(0.5))
-    model.add(ks.layers.Dense(num_classes))
-    model.add(ks.layers.Activation('softmax'))
+    model.add(keras.layers.Flatten())
+    model.add(keras.layers.Dense(512))
+    model.add(keras.layers.normalization.BatchNormalization())
+    model.add(keras.layers.Activation('relu'))
+    model.add(keras.layers.Dropout(0.5))
+    model.add(keras.layers.Dense(num_classes))
+    model.add(keras.layers.Activation('softmax'))
 
     if print_summary:
         print '\nCreated network: '
@@ -127,32 +164,53 @@ def printDataInfo(x_train, y_train, x_test, y_test, plotting=True):
     print 'training labels: {}'.format(y_train.shape)
     print 'testing set:     {} images'.format(x_test.shape)
     print 'testing labels:  {}'.format(y_test.shape)
-    print '\n', '-' * 30, 'Values of Data:'
+    print '\n', '-' * 30, '\nValues of Data:'
     print 'Range of train images: {}-{}, datatype: {}'.format(x_train.min(), x_train.max(), x_train.dtype)
     print 'Range of train labels: {}-{}, datatype: {}'.format(y_train.min(), y_train.max(), y_train.dtype)
     print 'Range of test images: {}-{}, datatype: {}'.format(x_test.min(), x_test.max(), x_test.dtype)
     print 'Range of test labels: {}-{}, datatype: {}'.format(y_test.min(), y_test.max(), y_test.dtype)
     if plotting:
-        idx = np.random.randint(0, y_train.shape[0], 4)
-        disp_data(x_train[idx, ...], y_train[idx, ...])
+        for _ in range(1):
+            idx = np.random.randint(0, y_train.shape[0], 4)
+            disp_data(x_train[idx, ...], y_train[idx, ...])
     print '=' * 40
 
 
-def create_and_train(x_train, y_train, x_test, y_test, train_params):
+def create_model(train_params, input_shape, print_summary=True):
+    '''
+    A couple of different networks for experimenting with.
+    This would typicall be VGG for most applications, but as this is just a toy
+    example, we're using a custom network trained from scratch.
+    '''
+    if train_params['batch_norm']:
+        print 'Batch norm and Dropout'
+        model = createNetworkBN(
+            input_shape, train_params['num_classes'], print_summary=print_summary)
+    elif train_params['no_dropout']:
+        print 'no Batch Norm or Dropout'
+        model = createNetwork_noDropout(
+            input_shape, train_params['num_classes'], print_summary=print_summary)
+    else:
+        print 'Dropout, no batch norm'
+        model = createNetwork(
+            input_shape, train_params['num_classes'], print_summary=print_summary)
+    return model
+
+
+def train_model(model, x_train, y_train, x_test, y_test, train_params):
+    '''
+    Setup the solver/optimizer you want to use.
+    Link it to the network/model/graph.
+    (optional) Setup data augmention, here a class already exists.
+    Begin training.
+    Save the trained weights.
+    '''
     model_path = os.path.join(
         train_params['save_dir'], train_params['model_name'])
-    assert not os.path.isfile(
-        model_path), 'Model "{}" already exists'.format(model_path)
 
-    if train_params['batch_norm']:
-        model = createNetworkBN(
-            x_train.shape[1:], train_params['num_classes'], print_summary=False)
-    else:
-        model = createNetwork(
-            x_train.shape[1:], train_params['num_classes'], print_summary=False)
-
-    # initiate SGD optimizer
-    opt = ks.optimizers.SGD(lr=train_params.get('lr', 0.0001), decay=1e-6)
+    # initiate RMSprop optimizer an improvement on SGD, similar to Adam
+    opt = keras.optimizers.rmsprop(
+        lr=train_params.get('lr', 0.0001), decay=1e-6)
 
     # Let's train the model using SGD
     model.compile(loss='categorical_crossentropy',
@@ -177,7 +235,7 @@ def create_and_train(x_train, y_train, x_test, y_test, train_params):
             samplewise_std_normalization=False,  # divide each input by its std
             zca_whitening=False,  # apply ZCA whitening
             # randomly rotate images in the range (degrees, 0 to 180)
-            rotation_range=0,
+            rotation_range=5,
             # randomly shift images horizontally (fraction of total width)
             width_shift_range=0.1,
             # randomly shift images vertically (fraction of total height)
@@ -206,7 +264,14 @@ def create_and_train(x_train, y_train, x_test, y_test, train_params):
     print 'Test accuracy {}'.format(scores[1])
 
 
-def main(train_params, verbose=False):
+def main(train_params, verbose=False, train=True):
+    '''
+    Load the data then visualise it.
+    Once the data has been checked do the preprocessing.
+    Create the model
+        - usually initialise a pre-trained network, but that's not done here.
+    Setup Data augmentation and trainining paramerts.
+    '''
     save_dir = os.path.join(os.getcwd(), 'brisbaneai', 'cifar_models',
                             'cifar_train')
     if not os.path.isdir(save_dir):
@@ -216,59 +281,77 @@ def main(train_params, verbose=False):
     (x_train, y_train), (x_test, y_test) = cifar10.load_data()
 
     if verbose:
-        printDataInfo(x_train, y_train, x_test, y_test, plotting=False)
+        printDataInfo(x_train, y_train, x_test, y_test, plotting=True)
+
+    # uncomment to enable debugging
+    # import pdb; pdb.set_trace()
 
     # create one hot vectors
-    y_train = ks.utils.to_categorical(y_train, train_params['num_classes'])
-    y_test = ks.utils.to_categorical(y_test, train_params['num_classes'])
+    y_train = keras.utils.to_categorical(y_train, train_params['num_classes'])
+    y_test = keras.utils.to_categorical(y_test, train_params['num_classes'])
     if verbose:
         print 'training labels (one-hot encoded): {}'.format(y_train.shape)
         print 'testing labels (one-hot encoded):  {}'.format(y_test.shape)
 
     # convert to float32's and normalise images
+    # Only convert Data to float32, keep labels as uint8's!!!!
     x_train.astype(np.float32)
     x_test.astype(np.float32)
     x_train /= 255
     x_test /= 255
 
-    create_and_train(x_train, y_train, x_test, y_test, train_params)
+    model = create_model(train_params, x_train.shape[1:], print_summary=True)
 
+    if train:
+        train_model(model, x_train, y_train, x_test, y_test, train_params)
+    else:
+        print 'network not training, set train flag' + \
+            ' within "main" function to True to train'
+#
 if __name__ == '__main__':
     '''
-    To Show
-    Data preprocessing (done)
-    Data Augmentation (done)
-    Batch Norm (Done)
-    Dropout (included but not done)
-    Finetuning (show jeremy's notebook)
+    This block is run when you call "python CNN_example.py", it in turn calls
+    all the other functions.
     '''
     no_aug = {'data_augmentation': False,
               'batch_norm': False,
-              'batch_size': 256,
+              'no_dropout': False,
+              'batch_size': 32,
               'num_classes': 10,
-              'epochs': 10,
+              'epochs': 5,
               'model_name': 'keras_cifar10_no_aug.h5'}
 
     t_aug = {'data_augmentation': True,
              'batch_norm': False,
+             'no_dropout': False,
              'batch_size': no_aug['batch_size'],
              'num_classes': no_aug['num_classes'],
              'epochs': no_aug['epochs'],
              'model_name': 'keras_cifar10_aug.h5'}
 
+    t_noDrop = {'data_augmentation': True,
+                'batch_norm': False,
+                'no_dropout': True,
+                'batch_size': no_aug['batch_size'],
+                'num_classes': no_aug['num_classes'],
+                'epochs': no_aug['epochs'],
+                'model_name': 'keras_cifar10_aug_nodropout.h5'}
+
     t_bn = {'data_augmentation': True,
             'batch_norm': True,
+            'no_dropout': False,
             'batch_size': no_aug['batch_size'],
             'num_classes': no_aug['num_classes'],
             'epochs': no_aug['epochs'],
             'model_name': 'keras_cifar10_aug_BN.h5'}
 
-    params = [no_aug, t_aug, t_bn]
+    main(t_bn, verbose=True, train=True)
 
-    for p in params:
-        print '=*=' * 40
-        print 'Running params {}/{}'
-        for key, value in p.iteritems():
-            print 'Set "{}" to {}'.format(key, value)
-        main(p)
-        print '\n' * 5
+    # params = [no_aug, t_aug, t_bn, t_noDrop]
+    # for count, p in enumerate(params, 1):
+    #     print '=*=' * 40
+    #     print 'Running params {}/{}'.format(count, len(params))
+    #     for key, value in p.iteritems():
+    #         print 'Set "{}" to {}'.format(key, value)
+    #     main(p)
+    #     print '\n' * 5
